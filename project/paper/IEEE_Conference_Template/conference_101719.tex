@@ -48,34 +48,63 @@ This study seeks to answer the following research question:
 \subsection{Text Analysis in Law}
 Legislation is the exercise of authority by the government to address issues or improvements of the nation. The number of legislations naturally accumulate over time, and these voluminous documents reflect what state of the country at a certain period. These also give pertinent value when analyzing history through the lens of lawmaking.
 
-Modern technology has significantly assisted with working on numerous text documents and one example is by utilizing graph neural networks and mapping relationships among various documents. San Pedro and Ballera implemented this for the purpose of constructing a legal knowledge graph of Philippine RAs. It was a statutory analysis of the most cited statutes among 12,124 RAs, and confirmed that RA 7160, the Local Government Code of 1991 is the most influential statute.
+Modern technology has significantly assisted with working on numerous text documents and one example is by utilizing graph neural networks and mapping relationships among various documents. San Pedro and Ballera\cite{graphsage} implemented this for the purpose of constructing a legal knowledge graph of Philippine RAs. It was a statutory analysis of the most cited statutes among 12,124 RAs, and confirmed that RA 7160, the Local Government Code of 1991 is the most influential statute.
 
-One kind of application for text analysis in the legal field is argument mining. It applies Natural Language Processing (NLP) to identify structures and categorize as premise, conclusion, and such. In legal documents, Poudyal, Gonçalves, and Quaresma developed a clustering technique for implementing it which aims to provide a solution to an issue where one argument may be part of multiple other distinct arguments.
+One kind of application for text analysis in the legal field is argument mining. It applies Natural Language Processing (NLP) to identify structures and categorize as premise, conclusion, and such. In legal documents, Poudyal, Gonçalves, and Quaresma\cite{cluster} developed a clustering technique for implementing it which aims to provide a solution to an issue where one argument may be part of multiple other distinct arguments.
 
-Lastly, Malandrino presented a comparative study between qualitative and quantitive studies for Social Network Analysis (SNA), specifically for policy networks (PN). SNA aims to reveal observable relationships among different entities or actors, and the comparative study was used to understand how PNs are interacted with by those actors, such as their coordination. Applying NLP quantitatively (i.e., finding patterns of frequencies) guides the researcher through general text patterns, which complements the qualitative approach (i.e., topic modeling) which hints at nuanced or deeper meaning behind the numbers.
+Lastly, Malandrino\cite{sna} presented a comparative study between qualitative and quantitive studies for Social Network Analysis (SNA), specifically for policy networks (PN). SNA aims to reveal observable relationships among different entities or actors, and the comparative study was used to understand how PNs are interacted with by those actors, such as their coordination. Applying NLP quantitatively (i.e., finding patterns of frequencies) guides the researcher through general text patterns, which complements the qualitative approach (i.e., topic modeling) which hints at nuanced or deeper meaning behind the numbers.
 
 Overall, there are plenty of different ways to apply text analysis in the context of legal documents which enables researchers to gain deeper understanding on their content and structures.
 
 \subsection{Text Analysis in Presidential Speeches}
 SONA is an annual presidential speech delivered by the president of the Philippines. It informs the public about the administration's merits and accomplishments, as well as any future plans.
 
-Presidential speeches are a good way to analyze rhetorics and speech behaviors of leaders, and assess how they sway public opinions with what they include and exclude from their speech, as well as how they say certain things such as choosing certain vocabulary over another. In Ancho, et al.'s analysis of the speeches of President Arroyo, President Aquino, and President Duterte, specifically in the context of education and how they addressed it, they used word frequency and thematic analysis using Nvivo software.
+Presidential speeches are a good way to analyze rhetorics and speech behaviors of leaders, and assess how they sway public opinions with what they include and exclude from their speech, as well as how they say certain things such as choosing certain vocabulary over another. In Ancho, et al.'s\cite{education} analysis of the speeches of President Arroyo, President Aquino, and President Duterte, specifically in the context of education and how they addressed it, they used word frequency and thematic analysis using Nvivo software.
 
-Miranda and Bringula's approach leans more into revealing the underlying patterns from multiple presidential speeches spanning from the past 13 Philippine presidents. They used topic modelling to extract prominent themes as well as term frequency to compare the priorities of each president. They also used sentiment analysis to classify whether each speech was positive or negative by the start and end of each year, and by how much.
+Miranda and Bringula's\cite{sona} approach leans more into revealing the underlying patterns from multiple presidential speeches spanning from the past 13 Philippine presidents. They used topic modelling to extract prominent themes as well as term frequency to compare the priorities of each president. They also used sentiment analysis to classify whether each speech was positive or negative by the start and end of each year, and by how much.
 
 These existing studies serve as guides on how to interpret the SONAs of FPRRD which will be focused on in this research. It also acts as reference with what themes to look out for during the analysis.
 
 \section{Methodology}
+\subsection{Dataset}
+The dataset will be coming from the Open Data Portal by BetterGov.ph namely Philippine Legal Documents Library\cite{dataset}. It is a consolidated corpus of Philippine legal documents from 1900-2025, which includes the years of administration of FPRRD 2016-2022. It comprises Supreme Court decisions, RAs, executive issuances and the Philippine constitutions. For this research, only the RAs will be used. The original source of these legal documents is from the Lawphil project by the Arellano Law Foundation. The total number of RAs to be used is 994, which excludes President Benigno Aquino's ending and President Ferdinand Marcos's starting terms also within 2016 and 2022 respectively.
 
+\subsection{Preprocessing}
+After inspection of the \texttt{content} column, there were some documents that are found to not match the exact original source from \texttt{lawphil.net}. These were remediated by copying the source document onto a \texttt{.txt} file and replaced the value on their respective entries from the dataset.
+
+For the time element of this study, it was important to extract the exact month and year of the approved data of the RA, but the dataset only includes the year. The month is meant to do a per-quarter analysis. This data was extracted by looking at the \texttt{content}'s text and using regex to look for the date from either the expressions "Approved:" or "Lapsed into law on". There were only 4 entries that didn't contain these text, and were hard-coded instead by cross-referencing with other sources beside \texttt{lawphil.net}. The result was stored on a new column called \texttt{approved\_date}.
+
+Some substitutions were performed such as replacing the spelling of "Co-Operative" to "Cooperative" so the succeeding cleaning steps will not tokenize them as separate units. Also, the text ".html" was removed.
+
+Other cleaning steps that were performed were converting to lowercase, removing digits, spaces, non-alphanumeric characters or underscores, and punctuations, then lemmatization. Some words were removed using the English stopwords from the \texttt{nltk.corpus} library. These were the words that were added in addition to that set after inspection of the corpus:
+\begin{itemize}
+    \item Coordinates ("n", "e", "s", "w", "pt", "deg") - these were present with documents that involved specifying locations and markings.
+    \item Subsections ("x") - some documents have subsections that were divided using 'x.x.x' or the like.
+    \item Negation ("non") - from "non-" words. These were tokenized separately, but it doesn't hold any meaning standalone.
+    \item Numbers ("zero", "one", "two", ...) - some documents use the actual words instead of digits.
+    \item Months and days ("monday", "tuesday", "january", "february", ...) - the RAs typically start with \textit{"Begun and held..."} and uses the full date format and not digits.
+    \item Common words ("act", "section", "shall", "may", "amend", "hereby", "year", "thereof", "sgd", "thence", "thereafter", "along", "day", "upon", "subsection") - these were frequently occurring words in the corpus which describes the common choice of words with legal documents, but these do not provide any actual meaning.
+\end{itemize}
+
+\subsection{Text analysis}
+The two approaches that will be used for analysis and interpretation are clustering and topic modeling:
+\begin{itemize}
+    \item \textbf{Clustering}: TF-IDF scores will first be extracted using TfidfVectorizer from the \texttt{sklearn.feature\_extraction.text} library. These scores will be used as input to get the cosine similarity for the entire corpus, and use it to visualize the clustering of similar documents using AgglomerativeClustering from \texttt{sklearn.cluster} library.
+    
+    The intention is to gain a high-level understanding of the contents of the RAs and which kinds of groups or fields comprises the corpus. This can also highlight what the previous administration has placed its priorities on.
+    \item \textbf{Topic Modeling}: Initially, the corpus will be divided into quarterly or yearly segments, then train a model within those subgroups. This results to multiple models per period and provide a code for them.
+    
+    The intention is to have a reference to compare against the yearly SONAs which states the plan of the administration for a particular year and what they have achieved using the statutes as the basis for evaluation.
+\end{itemize}
 
 \begin{thebibliography}{00}
-\bibitem{b1} G. Eason, B. Noble, and I. N. Sneddon, ``On certain integrals of Lipschitz-Hankel type involving products of Bessel functions,'' Phil. Trans. Roy. Soc. London, vol. A247, pp. 529--551, April 1955.
-\bibitem{b2} J. Clerk Maxwell, A Treatise on Electricity and Magnetism, 3rd ed., vol. 2. Oxford: Clarendon, 1892, pp.68--73.
-\bibitem{b3} I. S. Jacobs and C. P. Bean, ``Fine particles, thin films and exchange anisotropy,'' in Magnetism, vol. III, G. T. Rado and H. Suhl, Eds. New York: Academic, 1963, pp. 271--350.
-\bibitem{b4} K. Elissa, ``Title of paper if known,'' unpublished.
-\bibitem{b5} R. Nicole, ``Title of paper with only first word capitalized,'' J. Name Stand. Abbrev., in press.
-\bibitem{b6} Y. Yorozu, M. Hirano, K. Oka, and Y. Tagawa, ``Electron spectroscopy studies on magneto-optical media and plastic substrate interface,'' IEEE Transl. J. Magn. Japan, vol. 2, pp. 740--741, August 1987 [Digests 9th Annual Conf. Magnetics Japan, p. 301, 1982].
-\bibitem{b7} M. Young, The Technical Writer's Handbook. Mill Valley, CA: University Science, 1989.
+\bibitem{graphsage} Pedro, Z. G. S., \& Ballera, M. A. (2025). GraphLawPH: Graph-Based Representation and Analysis of Philippine Republic Acts Using GraphSAGE. 2025 8th International Seminar on Research of Information Technology and Intelligent Systems (ISRITI), 667-672. https://doi.org/10.1109/ISRITI68345.2025.11393352
+\bibitem{cluster} Poudyal, P., Gonçalves, T., \& Quaresma, P. (2019). Using Clustering Techniques to Identify Arguments in Legal Documents.
+\bibitem{sna} Malandrino, A. (2024). Comparing qualitative and quantitative text analysis methods in combination with document-based social network analysis to understand policy networks. Quality \& Quantity, 58(3), 2543-2570. https://doi.org/10.1007/s11135-023-01753-1
+\bibitem{education} Ancho, I. V., Calimbahin, G.-A. M., Rivera, J., \& Tina, J. C. (2020). Education and The Nation State: An Analysis of Philippine Presidential Speeches. Jurnal Studi Pemerintahan, 63-78. https://doi.org/10.18196/jgp.111112
+\bibitem{sona} Miranda, J. P. P., \& Bringula, R. P. (2021). Exploring Philippine Presidents' speeches: A sentiment analysis and topic modeling approach. Cogent Social Sciences, 7(1), 1932030. https://doi.org/10.1080/23311886.2021.1932030
+\bibitem{dataset} Open Data Portal · BetterGov.ph. (n.d.). Retrieved from https://data.bettergov.ph/datasets/24
+
 \end{thebibliography}
 \vspace{12pt}
 \end{document}
