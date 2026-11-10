@@ -79,7 +79,7 @@ Section 4. Section 10 of the same Act is hereby amended to read as follows:
 
 "(g) life imprisonment and a fine of not less than One million pesos (₱1,000,000.00) but not more than Five million pesos (₱5,000,000.00) if the offense constitutes economic sabotage. Economic sabotage is deemed committed when any of the prohibited acts described in Section 9 hereof is committed under the following circumstances:
 
-(1) the prohibited act involves the hacking of a bank’s system;
+(1) the prohibited act involves the hacking of a bank's system;
 
 (2) the act of skimming affected fifty (50) or more payment cards; or
 
