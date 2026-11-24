@@ -7,6 +7,10 @@
 \usepackage{graphicx}
 \usepackage{textcomp}
 \usepackage{xcolor}
+\usepackage{multirow}
+\usepackage{longtable}
+\usepackage{float}
+\graphicspath{ {./images/} }
 \def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
     T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 \begin{document}
@@ -37,10 +41,11 @@ Temporal analysis is a way to gain insight into a data's behavior over time. It 
 There are multiple facets in appreciating a past leader's performance. It can be judged based on the economic impact or even on mass popularity. This research focuses on identifying the tangible effects under the former president's administration by looking into the new laws or amendments performed during his term. This analysis also seeks to objectively evaluate whether there were effective legal reforms that reflected what was promised to the Filipino people. The study will apply social computing techniques such as topic modeling and clustering analysis on the collected dataset to process the textual data, then provide an interpretation of the outcome of those models.
 
 \section{Research Question}
-This study seeks to answer the following research question:
+This study seeks to answer the following research questions:
 
 \begin{enumerate}
-    \item How did FPRRD implement his objectives stated from each of his State of the Nation Address (SONA) from 2016 to 2021?
+    \item Which areas were the main priorities of the previous administration?
+    \item How did the previous administration respond to yearly events by way of legislation?
 \end{enumerate}
 
 \section{Review of Related Literature}
@@ -63,39 +68,234 @@ Presidential speeches are a good way to analyze rhetorics and speech behaviors o
 
 Miranda and Bringula's\cite{sona} approach leaned more into revealing the underlying patterns from multiple presidential speeches spanning from the past 13 Philippine presidents. They used topic modelling to extract prominent themes, as well as term frequency to compare the priorities of each president. They also used sentiment analysis to classify whether each speech was positive or negative by the start and end of each year, and by how much.
 
-These existing studies serve as guides on how to interpret the SONAs of FPRRD which will be focused on in this research. It also acts as reference with what themes to look out for during the analysis.
+These existing studies serve as guides on how to interpret the SONAs of FPRRD which will be referenced in this research.
 
 \section{Methodology}
 \subsection{Dataset}
-The dataset will be coming from the Open Data Portal by BetterGov.ph, namely Philippine Legal Documents Library\cite{dataset}. It is a consolidated corpus of Philippine legal documents from 1900-2025, which includes the years of administration of FPRRD 2016-2022. It comprises Supreme Court decisions, RAs, executive issuances and the Philippine constitutions. For this research, only the RAs will be used. The original source of these legal documents is from the Lawphil project by the Arellano Law Foundation. The total number of RAs to be used after filtering is 994, which excludes President Benigno Aquino's ending and President Ferdinand Marcos's starting terms that were also during 2016 and 2022, respectively.
+The dataset came from the Open Data Portal by BetterGov.ph, namely Philippine Legal Documents Library\cite{dataset}. It is a consolidated corpus of Philippine legal documents from 1900-2025, which includes the years of administration of FPRRD 2016-2022. It comprises Supreme Court decisions, RAs, executive issuances and the Philippine constitutions. For this research, only the RAs were used. The original source of these legal documents was from the Lawphil project by the Arellano Law Foundation. The total number of RAs to be used after filtering is 995, which excludes President Benigno Aquino's ending and President Ferdinand Marcos's starting terms that were also during 2016 and 2022, respectively.
 
 \subsection{Preprocessing}
-After inspection of the \texttt{content} column, which contains the actual contents of the RA, there were some documents that do not match the exact original source from \texttt{lawphil.net}. These were remediated by copying the source document onto a \texttt{.txt} file and replaced the value on their respective entries from the dataset.
-
-For the time element of this study, it was important to extract the exact month and year of the approved date of the RA, but the dataset only provides the year in a separate column. The month is meant for doing a per-quarter analysis. The months were extracted by looking at the \texttt{content}'s text and using regex to look for the date from either the expressions "Approved:" or "Lapsed into law on". There were only 4 entries that did not contain these expressions, so those were hard-coded instead by cross-referencing with other sources besides \texttt{lawphil.net}. The result was stored on a new column called \texttt{approved\_date}.
+After inspection of the \texttt{content} column, which contains the actual contents of the RA, there were some documents that did not match the exact original source from \texttt{lawphil.net}. These were remediated by copying the source document onto a \texttt{.txt} file and replaced the value on their respective entries from the dataset.
 
 Some substitutions were performed such as replacing the spelling of "Co-Operative" to "Cooperative" so the succeeding cleaning steps will not tokenize them as separate units. Also, the text ".html" was removed.
 
-The rest of the cleaning steps were converting to lowercase, removing digits, spaces, non-alphanumeric characters or underscores, and punctuations, followed by lemmatization. Some words were removed using the English stopwords from the \texttt{nltk.corpus} library. These words were added in addition to that set after careful inspection of the frequently occurring terms from the corpus:
+The rest of the cleaning steps were converting to lowercase, removing digits, spaces, non-alphanumeric characters or underscores, and punctuations.
+
+An analysis of the bigrams from the corpus using BigramCollocationFinder showed that there were some that can be chunked together considering that they have a high pointwise mutual information (PMI) score.
+
+A bigram and trigram models were used from the \texttt{gensim.models.phrases} library in order to chunk relevant phrases together. The resulting phrases were lemmatized using the \texttt{nltk.stem.WordNetLemmatizer} library. The words' Parts-Of-Speech (POS) were tagged and only those found to be a noun, verb and adjective were retained.
+
+Some words were removed using the English stopwords from the \texttt{nltk.corpus} library. These words were added in addition to that set after careful inspection of the frequently occurring terms from the corpus:
 \begin{itemize}
-    \item Coordinates ("n", "e", "s", "w", "pt", "deg") - used with documents that involved specifying locations and markings.
-    \item Subsections ("x") - some documents have subsections that were divided using 'x.x.x' or the like.
-    \item Negation ("non") - from "non-" words. These were tokenized separately, but it doesn't hold any meaning standalone.
-    \item Numbers ("zero", "one", "two", ...) - some documents use the actual words instead of digits.
-    \item Months and days ("monday", "tuesday", "january", "february", ...) - the RAs typically start with \textit{"Begun and held..."} and uses the full date format and not in digits.
-    \item Common words ("act", "section", "shall", "may", "amend", "hereby", "year", "thereof", "sgd", "thence", "thereafter", "along", "day", "upon", "subsection") - frequently occurring words in the corpus which were common choice of words among legal documents, but they do not provide any meaning standalone.
+    \item Alphabet ("a", "aa", "b", "bb", \dots) - some documents use the alphabet when using ordered lists, therefore they do not provide significant meaning.
 \end{itemize}
 
 \subsection{Text analysis}
-The two approaches that will be used for analysis and interpretation are clustering and topic modeling:
-\begin{itemize}
-    \item \textbf{Clustering}: TF-IDF scores will first be extracted using \texttt{TfidfVectorizer} from the \texttt{sklearn.feature\_extraction.text} library. These scores will be used as input to get the cosine similarity for the entire corpus, and use it to visualize the clustering of similar documents using \texttt{AgglomerativeClustering} from the \texttt{sklearn.cluster} library.
-    
-    The intention is to gain a high-level understanding of the contents of the RAs, and which kinds of groups or fields comprises the corpus. This can also highlight what the previous administration has placed its priorities on.
-    \item \textbf{Topic Modeling}: Initially, the corpus will be divided into quarterly or yearly segments, then train a model within those subgroups. This results to multiple models per period and provide a code for them.
+The two approaches that will be used for analysis and interpretation are clustering and topic modeling.
 
-    The intention is to have a reference to compare against the yearly SONAs which stated the plan of the administration for a particular year and what they have achieved. The resulting topics based on the statutes shall be the basis for evaluation when doing the comparison.
+\subsubsection{Clustering}
+
+TF-IDF scores were extracted using \texttt{TfidfVectorizer} from the \texttt{sklearn.feature\_extraction.text} library. These scores are then used as input to get the cosine similarity for the entire corpus, and use it to visualize the clustering of similar documents using \texttt{AgglomerativeClustering} from the \texttt{sklearn.cluster} library. The complete details of these scores were recorded in a \texttt{.csv} file which can be found in the Github repository linked in section \ref{code_availability}.
+
+The total number of dimensions per text resulted to 16,026. The total number of clusters used was 10. This is after multiple calibrations to determine the right amount enough to gain insights to the corpus. Adding more clusters would've resulted to a more fine-grained grouping but would be too difficult to interpret for the purposes of identifying the major groups.
+
+The intention is to gain a high-level understanding of the contents of the RAs, and which kinds of groups or fields comprises the corpus. This could also highlight what the previous administration has placed its priorities on.
+
+\subsubsection{Topic Modeling}
+
+The topic modeling library used was \texttt{DMRModel} from \texttt{tomotopy}. It offers a way to provide user metadata as a parameter to each document added into the \texttt{Corpus}, which was the index from the original dataset, so that it's possible to query which documents contained the generated topics.
+
+The \texttt{PMIExtractor} and \texttt{FoRelevance} were also used for automatic topic labeling. These labels were merely used as guides and not interpreted on their own in order to provide clues on the possible overarching meaning of those topics.
+
+The total number of topics used was 20. Similar to clustering, this is after multiple calibrations, and it was deemed that fewer than that number made the topics too broad to make sense of their main theme properly.
+
+The intention is to have a reference to compare against the yearly SONAs which stated the plan of the administration for a particular year and what they have achieved. The resulting topics based on the statutes shall be the basis for evaluation when doing the comparison.
+
+\section{Results}
+
+\subsection{Clustering Analysis}
+
+\begin{figure*}[h]
+    \centering
+    \includegraphics[scale=0.5]{clustering_overview}
+    \caption{A scatterplot with 10 clusters based on the cosine similarity of the Republic Act documents,}
+    \label{fig:clustering_overview}
+\end{figure*}
+
+As shown in figure \ref{fig:clustering_overview}, the total clusters selected was 10. These were interpreted as follows by examining sample documents from the dataset:
+\begin{itemize}
+    \item \textbf{Cluster 0} - general documents involving renaming, converting, or separating an entity, e.g. road renaming. These documents are scattered, as shown in the visual, likely because they were too generic or too simple to group distinctly. Some sample documents found were:
+    \begin{itemize}
+        \item \textit{RA 11051 of 2018} - naming of a national road in Lanao del Norte.
+        \item \textit{RA 11424 of 2019} - converting a high school department into a national high school in Tarlac.
+        \item \textit{RA 11048 of 2018} - renaming of a road into a national road in Cavite.
+    \end{itemize}
+    Inspecting one of the smaller clustered sub-group, still categorized under Cluster 0, turns out to be documents relating to Filipino citizenship. If the number of clusters were increased further, the grouping might become more distinct. But in general, this cluster is mainly composed of trivial subjects.
+    \item \textbf{Cluster 1} - franchise renewals granted to broadcasting companies, e.g., \textit{RA 11004 of 2018} (renewal of 25 years granted to Gateway Television Broadcasting, Inc.).
+    \item \textbf{Cluster 2} - Land Transportation Office (LTO) office or legislative district establishments.
+    \begin{itemize}
+        \item \textit{RA 11066 of 2018} - converting a licensing center into a regular licensing center in Batangas.
+        \item \textit{RA 11804 of 2022} - reapportioning legislative districts in South Cotabato.
+        \item \textit{RA 11748 of 2022} - creating a regular LTO district office in Aklan.
+    \end{itemize}
+    \item \textbf{Cluster 3} - holiday announcements, e.g., \textit{RA 10966 of 2017} (declaring Dec. 8 as special nonworking holiday).
+    \item \textbf{Cluster 4} - college or campus establishments.
+    \begin{itemize}
+        \item \textit{RA 11006 of 2018} - converting a state college into a state university in Mindoro.
+        \item \textit{RA 11348 of 2019} - establishing a Polytechnic University of the Philippines (PUP) campus in San Juan, Metro Manila.
+    \end{itemize}
+    \item \textbf{Cluster 5} - franchise grants.
+    \begin{itemize}
+        \item \textit{RA 11357 of 2019} - granting franchise for the construction of Distributed Energy Resources (DER) to Solar Para sa Bayan Corporation in remote and unviable, unserved, or underserved areas.
+        \item \textit{RA 11505 of 2020} - granting franchise renewal for conducting horse races to Metro Manila Turf Club, Inc. in Caloocan, Batangas, Cavite, Laguna, Rizal, and Quezon.
+        \item \textit{RA 11682 of 2022} - granting franchise renewal for air transport services to Air Philippines Corporation (Airphil Express, PAL Express, and Philippine Airlines).
+    \end{itemize}
+    \item \textbf{Cluster 6} - laws or amendments that are unique and substantive on its own compared to the rest of the documents. These were deemed to be the most impactful and applicable to a wider demographic rather than to specific entities. Some may be considered as landmark laws or reforms that set precedent. This cluster could likely be linked together based on the documents containing a short title, i.e., "Section 1. Short Title. - This Act shall be known as the \dots". More on this cluster will be discussed in the succeeding section \ref{clustering_sona}.
+    \begin{itemize}
+        \item \textit{RA 11232 of 2019} - Revised Corporation Code.
+        \item \textit{RA 11571 of 2021} - Joint Congressional Energy Commission (JCEC) Enhancement Act.
+        \item \textit{RA 11650 of 2022} - Instituting a Policy of Inclusion and Services for Learners with Disabilities in Support of Inclusive Education Act.
+    \end{itemize}
+    \item \textbf{Cluster 7} - national high school establishments.
+    \begin{itemize}
+        \item \textit{RA 11023 of 2018} - establishing a national high school in Davao.
+        \item \textit{RA 11070 of 2018} - converting an annex to an independent national high school in Davao Occidental.
+    \end{itemize}
+    \item \textbf{Cluster 8} - improving or establishing hospitals.
+    \begin{itemize}
+        \item \textit{RA 10940 of 2017} - increasing bed capacity of a medical center in Batangas.
+        \item \textit{RA 11891 of 2022} - establishing a tertiary general hospital in Iloilo.
+    \end{itemize}
+    \item \textbf{Cluster 9} - marine hatchery establishments, e.g., \textit{RA 10940 of 2017} (establishing a multi-species marine hatchery in Quezon).
 \end{itemize}
+
+\subsubsection{Combining with SONA Analysis}\label{clustering_sona}
+
+\begin{figure*}[h]
+    \centering
+    \includegraphics[scale=0.5]{clustering_sona}
+    \caption{Based on figure \ref{fig:clustering_overview}, with labels showing some of the most cited laws from the SONA.}
+    \label{fig:clustering_sona}
+\end{figure*}
+
+The six SONAs conducted by FPRRD were also reviewed by close reading to be able to make an assessment of what the previous administration deemed highly important to mention as achievements, or what they continuously urged Congress to work on.
+
+The following subjects were derived on the matters discussed during each SONA, and identified to be significant based on how often they were repeated across the years and how much emphasis it was conveyed with. The list below is grouped by subject and the corresponding RAs relating to it that were found from the dataset by searching for relevant keyword/s.
+
+\begin{itemize}
+    \item \textbf{Illegal Drugs}
+    \begin{itemize}
+        \item \textit{RA 11928 of 2022} - Separate Facility for Heinous Crimes Act
+        \item \textit{RA 11292 of 2019} - The Seal of Good Local Governance Act of 2019 (mentions \textit{"effective anti-illegal drugs campaign"})
+    \end{itemize}
+    \item \textbf{Education}
+    \begin{itemize}
+        \item \textit{RA 10931 of 2017} - Universal Access to Quality Tertiary Education Act
+        \item \textit{RA 11510 of 2020} - Alternative Learning System Act
+    \end{itemize}
+    \item \textbf{OFW}
+    \begin{itemize}
+        \item \textit{RA 11227 of 2018} - Handbook for OFWs Act of 2018
+        \item \textit{RA 11641 of 2021} - Department of Migrant Workers Act
+    \end{itemize}
+    \item \textbf{COVID-19}
+    \begin{itemize}
+        \item \textit{RA 11469 of 2020} - Bayanihan to Heal As One Act
+        \item \textit{RA 11494 of 2020} - Bayanihan to Recover As One Act
+        \item \textit{RA 11523 of 2021} - Financial Institutions Strategic Transfer (FIST) Act
+    \end{itemize}
+    \item \textbf{Tax Reforms}
+    \begin{itemize}
+        \item \textit{RA 10963 of 2017} - Tax Reform for Acceleration and Inclusion (TRAIN)
+        \item \textit{RA 11223 of 2019} - Universal Health Care Act
+        \item \textit{RA 11291 of 2021} - Magna Carta of the Poor
+    \end{itemize}
+\end{itemize}
+
+It is noticeable from figure \ref{fig:clustering_sona} that these are all contained under Cluster 6 that was previously determined to contain the most influential acts.
+
+Looking at the bigger picture, this cluster is a much smaller portion when viewed as a whole. It's difficult to speculate whether this implies that the previous administration performed better or worse in terms of creating new laws, or improving existing ones. For that, it would be better to compare with how the clustering would look like for the preceding administrations in order to observe their distribution. There is also the matter of implementation that cannot be evaluated by looking at legislations alone.
+
+\subsection{Topic Modeling Analysis}
+
+Topic modeling was applied using the entire dataset, and the generated topics were mapped to each document, grouping by year, in order to visualize a pattern of where the previous administration placed their efforts on a yearly basis.
+
+The complete details of each topic, their top words and corresponding probabilities are documented in Appendix \ref{topics} for reference. In the graphs below, only the top word was used as the label for brevity.
+
+\subsubsection{Year 2016}
+
+Since this is only the starting term, it may be expected not to have a lot of approved RAs straight off. The 2 documents from 2016 were:
+\begin{itemize}
+    \item \textit{RA 10923} - postponement of SK elections.
+    \item \textit{RA 10924} - general funding to the government for the succeeding year. 
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.5]{topic_2016}
+    \caption{Topic distribution for year 2016.}
+\end{figure}
+
+Topic 3 has the top word \textit{barangay}, and it is composed of documents mentioning various activities involved with a barangay, national high school, municipality or province. In the chart, it refers to \textit{RA 10923} which pertains to barangay elections. Although for the succeeding years, a document doesn't necessarily have the word barangay to be categorized in this topic. It could be that these kinds of documents are more focused on the location of the activity, rather than the activity itself.
+
+Topic 14 has the top word \textit{fund}, and it involves any kind of funding as the main subject. In the chart, it refers to \textit{RA 10924} which matches the top word since it is a general funding act.
+
+\subsubsection{Year 2017}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.5]{topic_2017}
+    \caption{Topic distribution for year 2017.}
+\end{figure}
+
+There were a total of 40 documents for year 2017. The major topic then was topic 3, \textit{barangay}. A sample of the documents with topic 3 are as follows:
+\begin{itemize}
+    \item \textit{RA 10958} - dividing a barangay in Valenzuela.
+    \item \textit{RA 10965} - establishing a national high school in Ilocos Norte.
+    \item \textit{RA 10943} - establishing a multi-species hatchery in Quezon.
+\end{itemize}
+
+Interestingly, one would expect that the salient term in the third item could've been \textit{hatchery} or \textit{marine}, given that these were grouped together from the previous clustering analysis. It may be possible that if the number of topics were to be increased, the designations could improve. But in this case, it likely got grouped here because of the term \textit{province} instead.
+
+\subsubsection{Year 2018}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.5]{topic_2018}
+    \caption{Topic distribution for year 2018.}
+\end{figure}
+
+There were a total of 200 documents for year 2018. Here, the majority is between the topics 3 (\textit{barangay}) and 8 (\textit{senate}). A sample of the documents with topic 8 are as follows:
+\begin{itemize}
+    \item \textit{RA 11136} - declaring September 2 as "Simeon Ola Day" in Albay.
+    \item \textit{RA 11142} - declaring September 1 as "Araw ng Jasaan" in Misamis Oriental.
+    \item \textit{RA 11118} - declaring May 22 as anniversary of Guimaras.
+\end{itemize}
+
+Similarly to the case of the marine hatchery document, after inspecting a sample of documents from topic 8, it turns out that these are generally holiday declarations even though the top 10 words wasn't able to include the term \textit{holiday}.
+
+\subsubsection{Year 2019}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.5]{topic_2019}
+    \caption{Topic distribution for year 2019.}
+\end{figure}
+
+There were a total of 287 documents for year 2019. For this year, the topics look to be more diverse compared with the previous three years. There now includes topic 4 (\textit{grantee}), and 19 (\textit{hospital}). The RAs under topic 4 closely match their top word because they are the franchise renewals. A sample of the documents with topic 19 are as follows:
+\begin{itemize}
+    \item \textit{RA 11359} - increasing bed capacity for a general hospital in Pampanga.
+    \item \textit{RA 11136} - establishing a specialty hospital in Bulacan.
+    \item \textit{RA 11242} - granting of Philippine citizenship to Mr. Kho.
+\end{itemize}
+
+As seen from the sample, a few of the documents with topic 19 relates to granting a Philippine citizenship. Similar to the case of marine hatchery, increasing the topics may improve the distinction and possibly improve the categorization of documents pertaining to citizenship better. But in general, most of the documents in topic 19 corresponds with the top word \textit{hospital}. They involve programs such as increasing bed capacity, improving medical services, or establishing new hospitals.
+
+\subsubsection{Combining with SONA Analysis}
+
+\subsection{Code Availability}\label{code_availability}
+
+\section{Conclusion}
 
 \begin{thebibliography}{00}
 \bibitem{graphsage} Pedro, Z. G. S., \& Ballera, M. A. (2025). GraphLawPH: Graph-Based Representation and Analysis of Philippine Republic Acts Using GraphSAGE. 2025 8th International Seminar on Research of Information Technology and Intelligent Systems (ISRITI), 667-672. https://doi.org/10.1109/ISRITI68345.2025.11393352
@@ -106,5 +306,253 @@ The two approaches that will be used for analysis and interpretation are cluster
 \bibitem{dataset} Open Data Portal · BetterGov.ph. (n.d.). Retrieved from https://data.bettergov.ph/datasets/24
 
 \end{thebibliography}
+
+\onecolumn
+
+\appendices
+
+\section{Topics}\label{topics}
+
+\begin{center}
+\begin{longtable}{|l|l|l|}
+\caption{Complete list of generated topics with their top 10 words and probabilities.} \label{tab:long} \\
+
+\hline \multicolumn{1}{|c|}{\textbf{Topic Number}} & \multicolumn{1}{c|}{\textbf{Word}} & \multicolumn{1}{c|}{\textbf{Probability}} \\ \hline 
+\endfirsthead
+
+\multicolumn{3}{c}%
+{{\bfseries \tablename\ \thetable{} -- continued from previous page}} \\
+\hline \multicolumn{1}{|c|}{\textbf{Topic Number}} & \multicolumn{1}{c|}{\textbf{Word}} & \multicolumn{1}{c|}{\textbf{Probability}} \\ \hline 
+\endhead
+
+\hline \multicolumn{3}{|r|}{{Continued on next page}} \\ \hline
+\endfoot
+
+\hline \hline
+\endlastfoot
+
+\hline
+\multirow{3}{4em}{0} & product & 0.026057537645101547 \\
+& use & 0.017483001574873924 \\
+& financial & 0.013338643126189709 \\
+& business & 0.011385553516447544 \\
+& refers & 0.010671009309589863 \\
+& information & 0.010528100654482841 \\
+& industry & 0.010528100654482841 \\
+& application & 0.010480464436113834 \\
+& license & 0.010385191068053246 \\
+& follow & 0.009718283079564571 \\
+\hline
+\multirow{3}{4em}{1} & education & 0.03844379261136055 \\
+& program & 0.03239966928958893 \\
+& school & 0.019468054175376892 \\
+& institution & 0.010964111424982548 \\
+& skill & 0.010612709447741508 \\
+& deped & 0.00990990363061428 \\
+& development & 0.00990990363061428 \\
+& technology & 0.009769342839717865 \\
+& system & 0.009066537953913212 \\
+& high & 0.008820555172860622 \\
+\hline
+\multirow{3}{4em}{2} & campus & 0.06378062814474106 \\
+& university & 0.03686678037047386 \\
+& provision & 0.021462712436914444 \\
+& college & 0.020337695255875587 \\
+& state & 0.018347281962633133 \\
+& municipality & 0.015404932200908661 \\
+& city & 0.014539535157382488 \\
+& province & 0.012289502657949924 \\
+& republic\_act & 0.011164486408233643 \\
+& law & 0.010645248927175999 \\
+\hline
+\multirow{3}{4em}{3} & barangay & 0.06915496289730072 \\
+& national\_high\_school & 0.03664093092083931 \\
+& secretary & 0.027890976518392563 \\
+& province & 0.015810074284672737 \\
+& know & 0.015760358422994614 \\
+& approve & 0.014964908361434937 \\
+& municipality & 0.01481576170772314 \\
+& education & 0.01481576170772314 \\
+& republic\_act & 0.012379693798720837 \\
+& senate & 0.01228026207536459 \\
+\hline
+\multirow{3}{4em}{4} & grantee & 0.042825307697057724 \\
+& franchise & 0.03591616451740265 \\
+& station & 0.02535945363342762 \\
+& facility & 0.014822044409811497 \\
+& congress & 0.014571153558790684 \\
+& broadcast & 0.014571153558790684 \\
+& operation & 0.014455357566475868 \\
+& provision & 0.01235173549503088 \\
+& use & 0.012235940434038639 \\
+& ntc & 0.012216640636324883 \\
+\hline
+\multirow{3}{4em}{5} & deg & 0.03278519585728645 \\
+& office & 0.029981862753629684 \\
+& province & 0.02447022870182991 \\
+& secretary & 0.021761925891041756 \\
+& municipality & 0.01829339936375618 \\
+& jay\_q & 0.017865771427750587 \\
+& sgd & 0.01772322878241539 \\
+& velasco\_speaker\_of\_the\_house\_of\_representatives & 0.01772322878241539 \\
+& mark\_llandro\_l\_mendoza & 0.017248088493943214 \\
+& villarica\_secretary & 0.017010517418384552 \\
+\hline
+\multirow{3}{4em}{6} & city & 0.06081097945570946 \\
+& officer & 0.014959180727601051 \\
+& mayor & 0.014805230312049389 \\
+& local & 0.014574303291738033 \\
+& ordinance & 0.01429205946624279 \\
+& law & 0.013778888620436192 \\
+& provincial & 0.013445327989757061 \\
+& office & 0.010828157886862755 \\
+& province & 0.010443279519677162 \\
+& official & 0.010263669304549694 \\
+\hline
+\multirow{3}{4em}{7} & tax & 0.06745991855859756 \\
+& amend & 0.015579033643007278 \\
+& income & 0.01467385794967413 \\
+& percent & 0.013196991756558418 \\
+& investment & 0.012005969882011414 \\
+& sale & 0.011529561132192612 \\
+& x\_x\_x & 0.01124371588230133 \\
+& follows\_sec & 0.010243258439004421 \\
+& local & 0.00971920881420374 \\
+& year & 0.009528645314276218 \\
+\hline
+\multirow{3}{4em}{8} & senate & 0.039176590740680695 \\
+& secretary & 0.028379157185554504 \\
+& president & 0.023178299888968468 \\
+& approve & 0.02142583765089512 \\
+& third\_regular & 0.01967337541282177 \\
+& seventeenth\_congress & 0.01956031285226345 \\
+& two\_thousand\_eighteen & 0.019334187731146812 \\
+& gloria\_macapagal\_arroyo\_speaker & 0.019277656450867653 \\
+& manila\_on\_monday\_the\_twenty & 0.019108064472675323 \\
+& third\_day\_of\_july & 0.019051533192396164 \\
+& bangsamoro & 0.04853004217147827 \\
+& law & 0.02448318339884281 \\
+\hline
+\multirow{3}{4em}{9} & bangsamoro\_autonomous\_region & 0.022851044312119484 \\
+& organic & 0.02274223417043686 \\
+& national & 0.020566048100590706 \\
+& cooperative & 0.019913192838430405 \\
+& development & 0.019042717292904854 \\
+& fishery & 0.019042717292904854 \\
+& farmer & 0.0173017680644989 \\
+& agriculture & 0.01577843725681305 \\
+\hline
+\multirow{3}{4em}{10} & person & 0.03544725105166435 \\
+& case & 0.017514077946543694 \\
+& law & 0.013320624828338623 \\
+& court & 0.013197287917137146 \\
+& period & 0.012136591598391533 \\
+& penalty & 0.01196391973644495 \\
+& order & 0.010631881654262543 \\
+& article & 0.010113866999745369 \\
+& fine & 0.010039865039288998 \\
+& violation & 0.008165145292878151 \\
+\hline
+\multirow{3}{4em}{11} & grantee & 0.05523361265659332 \\
+& franchise & 0.03337545320391655 \\
+& telecommunication & 0.019205333665013313 \\
+& system & 0.015647729858756065 \\
+& operation & 0.012662960216403008 \\
+& congress & 0.01254236325621605 \\
+& facility & 0.01227102056145668 \\
+& its\_successors\_or\_assignees & 0.010763561353087425 \\
+& ntc & 0.010733412578701973 \\
+& provision & 0.010160577483475208 \\
+\hline
+\multirow{3}{4em}{12} & national & 0.021932048723101616 \\
+& agency & 0.020044779404997826 \\
+& development & 0.018583668395876884 \\
+& department & 0.016300680115818977 \\
+& policy & 0.011963005177676678 \\
+& program & 0.011125910095870495 \\
+& function & 0.009786557406187057 \\
+& include & 0.009649578481912613 \\
+& plan & 0.009056001901626587 \\
+& local & 0.008949462324380875 \\
+\hline
+\multirow{3}{4em}{13} & corporation & 0.03474785014986992 \\
+& board & 0.03155465051531792 \\
+& commission & 0.021666033193469048 \\
+& director & 0.017236756160855293 \\
+& member & 0.013391181826591492 \\
+& security & 0.012464123778045177 \\
+& interest & 0.010747349821031094 \\
+& stockholder & 0.010060640051960945 \\
+& registration & 0.009785955771803856 \\
+& certificate & 0.00954560749232769 \\
+\hline
+\multirow{3}{4em}{14} & fund & 0.02065405063331127 \\
+& benefit & 0.01354873739182949 \\
+& year & 0.01303939614444971 \\
+& employee & 0.009830544702708721 \\
+& president & 0.007971448823809624 \\
+& provision & 0.007895046845078468 \\
+& grant & 0.0077167777344584465 \\
+& include & 0.007513041142374277 \\
+& pay & 0.007462107110768557 \\
+& agency & 0.007181969471275806 \\
+\hline
+\multirow{3}{4em}{15} & thence & 0.0526534803211689 \\
+& w\_meters\_to\_corner & 0.025538023561239243 \\
+& management & 0.02496415190398693 \\
+& e\_meters\_to\_corner & 0.024605482816696167 \\
+& protected\_area & 0.022596929222345352 \\
+& national & 0.021090516820549965 \\
+& area & 0.019153697416186333 \\
+& pamb & 0.017073409631848335 \\
+& museum & 0.014849656261503696 \\
+& denr & 0.013128040358424187 \\
+\hline
+\multirow{3}{4em}{16} & board & 0.0364869125187397 \\
+& university & 0.0355280339717865 \\
+& president & 0.027783220633864403 \\
+& ched & 0.015096481889486313 \\
+& college & 0.013744213618338108 \\
+& member & 0.013350825756788254 \\
+& chairperson & 0.011900210753083229 \\
+& education & 0.010695462115108967 \\
+& academic & 0.010007034055888653 \\
+& program & 0.007818818092346191 \\
+\hline
+\multirow{3}{4em}{17} & system & 0.03133614733815193 \\
+& energy & 0.02831817790865898 \\
+& power & 0.022795937955379486 \\
+& doe & 0.015539969317615032 \\
+& area & 0.01509048417210579 \\
+& distribution & 0.014705211855471134 \\
+& operation & 0.014384151436388493 \\
+& charge & 0.011944091878831387 \\
+& facility & 0.011109334416687489 \\
+& water & 0.010788273997604847 \\
+\hline
+\multirow{3}{4em}{18} & child & 0.048049814999103546 \\
+& health & 0.045227423310279846 \\
+& care & 0.021443624049425125 \\
+& doh & 0.012632261030375957 \\
+& social & 0.012219227850437164 \\
+& include & 0.01132432371377945 \\
+& adoption & 0.010842452757060528 \\
+& worker & 0.010532678104937077 \\
+& right & 0.009500096552073956 \\
+& parent & 0.009190321899950504 \\
+\hline
+\multirow{3}{4em}{19} & hospital & 0.04646063596010208 \\
+& meter & 0.042118579149246216 \\
+& health & 0.024750348180532455 \\
+& medical & 0.017244791612029076 \\
+& secretary & 0.016314351931214333 \\
+& provision & 0.013833174481987953 \\
+& center & 0.01364708598703146 \\
+& capacity & 0.012902733869850636 \\
+& facility & 0.012592586688697338 \\
+& part & 0.012530556879937649 \\
+\end{longtable}
+\end{center}
+
 \vspace{12pt}
 \end{document}

@@ -9,7 +9,7 @@ https://lawphil.net/statutes/repacts/ra2019/ra_11424_2019.html
 * high school conversion
 * DOE
 
-https://lawphil.net/statutes/repacts/ra2018/ra_11048_2018.html
+https://lawphil.net/sretatutes/repacts/ra2018/ra_11048_2018.html
 * road renaming
 * DPWH
 
