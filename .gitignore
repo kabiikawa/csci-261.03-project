@@ -1,0 +1,10 @@
+*.pkl
+*.model
+*.zip
+*.aux
+*.fdb*
+*.fls
+*.log
+*.synctex*
+*.en-US.txt
+*.html
