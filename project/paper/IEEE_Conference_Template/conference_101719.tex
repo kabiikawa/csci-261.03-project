@@ -15,8 +15,7 @@
     T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 \begin{document}
 
-\title{Textual Temporal Analysis of a Presidential Term
-}
+\title{Textual Analysis of a Presidential Term}
 
 \author{\IEEEauthorblockN{1\textsuperscript{st} Roselyn Crisostomo}
 \IEEEauthorblockA{\textit{Department of Information Systems and Computer Science} \\
@@ -40,7 +39,7 @@ Temporal analysis is a way to gain insight into a data's behavior over time. It 
 
 There are multiple facets in appreciating a past leader's performance. It can be judged based on the economic impact or even on mass popularity. This research focuses on identifying the tangible effects under the former president's administration by looking into the new laws or amendments performed during his term. This analysis also seeks to objectively evaluate whether there were effective legal reforms that reflected what was promised to the Filipino people. The study will apply social computing techniques such as topic modeling and clustering analysis on the collected dataset to process the textual data, then provide an interpretation of the outcome of those models.
 
-\section{Research Question}
+\section{Research Questions}
 This study seeks to answer the following research questions:
 
 \begin{enumerate}
@@ -291,11 +290,70 @@ There were a total of 287 documents for year 2019. For this year, the topics loo
 
 As seen from the sample, a few of the documents with topic 19 relates to granting a Philippine citizenship. Similar to the case of marine hatchery, increasing the topics may improve the distinction and possibly improve the categorization of documents pertaining to citizenship better. But in general, most of the documents in topic 19 corresponds with the top word \textit{hospital}. They involve programs such as increasing bed capacity, improving medical services, or establishing new hospitals.
 
+\subsubsection{Year 2020}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.5]{topic_2020}
+    \caption{Topic distribution for year 2020.}
+\end{figure}
+
+There were a total of 54 documents for year 2020, which decreased by 81\% from the previous year. A remarkable event during 2020 was the COVID-19 pandemic, and that may have consumed most of the time and efforts from the government. Also, there is a significant increase to the portion of topic 19 (\textit{hospital}). It makes sense that the RAs during this year somewhat reflects what the country was going through at this period in time, where most efforts are diverted into helping the country navigate the pandemic situation.
+
+It is unclear though why there is a significant portion (31.5\%) allocated to topic 4 (\textit{grantee}). It may be due to the fact that there is a significantly lower amount of documents for this year, and comparing with the average so far (132), this distribution is actually not too significant. In fact, the total number of documents containing topic 4 in 2019 was 38, and in 2020 was merely 11. These franchise renewals could simply be recurring tasks and may be considered trivial.
+
+One of the three main topics is also topic 5 with top word \textit{deg}. This is actually an abbreviation of the word "degrees" and it comes from documents describing boundaries. An example is from \textit{RA 11896 of 2022} where a barangay in Bulacan was divided into 4 and the full technical descriptions of each was listed. This specific word can be found under the "Bearing" field ("N 08 deg. 55' W"). The probability assigned to the word \textit{deg} likely increased because of the numerous instances that this detail was listed. Upon inspection of the documents, it was concluded that it also talks about establishment of offices:
+\begin{itemize}
+    \item \textit{RA 11488} - transferring of a district engineering office in Sorsogon.
+    \item \textit{RA 11489} - creating a district engineering office in Cebu.
+    \item \textit{RA 11484} - converting a road into a national road in Benguet.
+\end{itemize}
+
+\subsubsection{Year 2021}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.5]{topic_2021}
+    \caption{Topic distribution for year 2021.}
+\end{figure}
+
+There were a total of 120 documents for year 2021. As observed from the chart, topic 19 (\textit{hospital}) is still one of the main priorities as the country starts to adjust and recover better from the pandemic. The range of topics for this year is also more diverse, similar to year 2019, but the total number of RAs has still not reached the typical count of at least 200 documents.
+
+\subsubsection{Year 2022}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.5]{topic_2022}
+    \caption{Topic distribution for year 2022.}
+\end{figure}
+
+There were a total of 292 documents for year 2022, which is also the final term of the previous administration. It would appear that the government, especially the legislative branch, have started to get find one's bearings amidst the pandemic period. Since at this point the health guidelines still haven't been fully relaxed, and vaccination efforts are still underway, topic 19 (\textit{hospital}) rightfully still sits as one of the major priorities of these documents.
+
+Topics 3 (\textit{barangay}), 4 (\textit{grantee}), and 5 (\textit{deg}) also remains as one of the major portions for this year. Although these documents may seem "business-as-usual" in nature, it would be clearer to tell what they signify if the topic distribution was compared with other presidents' terms to say whether these are actually typical or not, or something unique to the previous administration.
+
 \subsubsection{Combining with SONA Analysis}
+
+It is interesting to note that some of the topics recurrent from the SONA did not appear as neither the top word, nor at least one of the top 10 of a particular topic. One example is disaster response where year-on-year, it was brought up with a sense of urgency and commitment.
+
+In 2016, plans relating to the flooding in Metro Manila and neighboring areas were mentioned. In 2017, Super Typhoon Yolanda was even cited to further emphasize the importance of preparing for these mega-typhoons. In 2018, there was a call for creating a Department of Disaster Management, supposedly akin to Federal Emergency Management Agency (FEMA) in the United States (US). In 2019, water shortage brought upon by El Niño was stressed that also wreaked havoc in the agricultural sector, and the recommendation was to pass a bill creating the Department of Water Resources and Water Regulatory Commission. In 2020, there was yet another push for creating a Department of Disaster Resilience this time (previously, "Management"). Lastly for 2021, a plan to create the Mandatory Establishment of Evacuation Centers.
+
+In legislation, however, bills do not necessarily get approved immediately, and it could take years, possibly even after the drafting administration has completed, for them to be approved.
+
+One way of looking at the statutes is they exist to correct any defects to the existing law that is deemed to be insufficient to address the current societal issues. But even when a new law or amendment is supposedly an improvement, implementation or execution is still a separate issue that is not reflected from these documents.
+
+An example is FPRRD's persistence and promise in eradicating illegal drugs from the country, as notably being highlighted for each of his SONAs. Yet, when looking at the statutes during his term, it doesn't immediately reflect that level of importance.
+
+It can also be considered that the subject of these RAs are too scattered. There are too many sectors involved, and naturally the generated topics will be too diverse.
 
 \subsection{Code Availability}\label{code_availability}
 
+The notebooks are uploaded on Github with this link:
+
 \section{Conclusion}
+
+Two main social computing techniques were used to assess the RAs approved during FPRRD's term from 2016 to 2022. Clustering analysis revealed certain groups such as hospital improvements, franchise grants, and the landmark laws with differing matters under a single cluster. Topic modeling revealed how priorities for each year shifted, particularly during the COVID-19 pandemic.
+
+For future work, it would be beneficial to compare how the topic distribution and clusters would show for other presidents' to make a more informed evaluation on judgment on an administration's performance in helping to improve the conditions of the country.
 
 \begin{thebibliography}{00}
 \bibitem{graphsage} Pedro, Z. G. S., \& Ballera, M. A. (2025). GraphLawPH: Graph-Based Representation and Analysis of Philippine Republic Acts Using GraphSAGE. 2025 8th International Seminar on Research of Information Technology and Intelligent Systems (ISRITI), 667-672. https://doi.org/10.1109/ISRITI68345.2025.11393352
